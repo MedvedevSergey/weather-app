@@ -33,6 +33,28 @@ class APIKeyStore(models.Model):
     key = models.CharField(max_length=255)
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     current_key = models.BooleanField(default=False)
+    is_header = models.BooleanField(default=False)
+    attr_name = models.CharField(max_length=15, default='appid')
 
     def __str__(self):
         return self.name
+
+
+class Abstract(models.Model):
+    title = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.title
+
+
+class Parameter(Abstract):
+    pass
+
+
+class Header(Abstract):
+    pass

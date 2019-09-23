@@ -14,10 +14,19 @@ class WeatherAPIView(APIView):
             location = Location.objects.get(default=True)
             api_key_obj = APIKeyStore.objects.select_related('service').get(current_key=True, service__default=True)
             service = api_key_obj.service
+            payload = {name: value for name, value in service.parameter_set.values('title', 'value')}
+            headers = {name: value for name, value in service.header_set.values('title', 'value')}
         except ObjectDoesNotExist as e:
             return Response({'error': str(e)})
-        payload = {'appid': api_key_obj.key, 'units': 'metric',
-                   'lat': location.lat, 'lon': location.lon}
+
+        api_key_attr = {api_key_obj.attr_name: api_key_obj.key}
+        if api_key_obj.is_header:
+            headers.update(api_key_attr)
+        else:
+            payload.update(api_key_attr)
+
+        payload.update({'lat': location.lat, 'lon': location.lon})
+
         r = requests.get(service.url, params=payload)
 
         build_json = getattr(WeatherAPIView, service.available_service, None)
